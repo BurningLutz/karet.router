@@ -1,0 +1,17 @@
+{
+  "name": "karet-router",
+  "version": "1.0.0",
+  "description": "A router written with Kefir and Karet.",
+  "main": "index.js",
+  "repository": "https://github.com/BurningLutz/karet.router",
+  "author": "BurningLutz",
+  "license": "MIT",
+  "peerDependencies": {
+    "history": "^4.10.1",
+    "invariant": "^2.2.4",
+    "karet": "^4.1.0",
+    "karet.util": "^0.19.1",
+    "kefir.ramda": "^0.26.0",
+    "path-to-regexp": "^6.1.0"
+  }
+}
