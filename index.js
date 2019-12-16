@@ -91,7 +91,7 @@ export function Router({
     routes,
     R.map(route => {
       const keys = []
-      const regexp = pathToRegexp(route.path, keys, { end: false })
+      const regexp = pathToRegexp(route.path, keys)
 
       return {
         keys,
