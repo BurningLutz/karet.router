@@ -1,5 +1,5 @@
 {
-  "name": "karet-router",
+  "name": "karet.router",
   "version": "1.0.1",
   "description": "A router written with Kefir and Karet.",
   "main": "index.js",
