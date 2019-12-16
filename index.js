@@ -2,6 +2,7 @@ import * as React from "karet"
 import { Fragment, useContext } from "karet"
 import * as U from "karet.util"
 import * as R from "kefir.ramda"
+import { curry } from "ramda"
 import { createBrowserHistory } from "history"
 import invariant from "invariant"
 import { pathToRegexp } from "path-to-regexp"
@@ -9,7 +10,7 @@ import { pathToRegexp } from "path-to-regexp"
 const RouterContext = React.createContext()
 const history = createBrowserHistory()
 
-export const push = R.curry((rwHistory, to) => {
+export const push = curry((rwHistory, to) => {
   const { next } = U.destructure(rwHistory)
 
   const url = new URL(to, window.location.href)

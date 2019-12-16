@@ -17,6 +17,7 @@
     "kefir": "^3.7.0",
     "kefir.ramda": "^0.26.0",
     "path-to-regexp": "^6.1.0",
+    "ramda": "^0.26.1",
     "react": "^16.8.0"
   },
   "devDependencies": {
