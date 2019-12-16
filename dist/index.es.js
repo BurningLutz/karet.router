@@ -93,7 +93,7 @@ export function Router({
     }
   }); // set init next when not provided at the time this component get mounted
 
-  const syncWithHistory = U.thru(next, U.consume(R.when(R.isNil, () => {
+  const syncWithHistory = U.thru(next, U.takeFirst(1), U.consume(R.when(R.isNil, () => {
     // treat the first load as a POP
     next.set({ ...R.pick(["pathname", "search", "hash"], history.location),
       type: "POP"
