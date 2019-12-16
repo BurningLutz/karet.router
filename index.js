@@ -109,11 +109,18 @@ export function Router({
       next.set({ pathname, search, hash, type })
     }
   })
-  // treat the first load as a POP
-  next.set({
-    ...R.pick(["pathname", "search", "hash"], history.location),
-    type: "POP",
-  })
+
+  // set init next when not provided at the time this component get mounted
+  const syncWithHistory = U.thru(
+    next,
+    U.consume(R.when(R.isNil, () => {
+      // treat the first load as a POP
+      next.set({
+        ...R.pick(["pathname", "search", "hash"], history.location),
+        type: "POP",
+      })
+    }))
+  )
 
   const prepareWhenNextChanged = U.thru(
     next,
@@ -206,6 +213,7 @@ export function Router({
       <Fragment>
         { U.onUnmount(unlisten) }
         { updatePath }
+        { syncWithHistory }
       </Fragment>
 
       <Fragment>

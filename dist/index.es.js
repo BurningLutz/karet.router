@@ -91,11 +91,14 @@ export function Router({
         type
       });
     }
-  }); // treat the first load as a POP
+  }); // set init next when not provided at the time this component get mounted
 
-  next.set({ ...R.pick(["pathname", "search", "hash"], history.location),
-    type: "POP"
-  });
+  const syncWithHistory = U.thru(next, U.consume(R.when(R.isNil, () => {
+    // treat the first load as a POP
+    next.set({ ...R.pick(["pathname", "search", "hash"], history.location),
+      type: "POP"
+    });
+  })));
   const prepareWhenNextChanged = U.thru(next, U.skipWhen(R.isNil), U.flatMapLatest(({
     pathname,
     search,
@@ -150,5 +153,5 @@ export function Router({
   }));
   return React.createElement(RouterContext.Provider, {
     value: rwHistory
-  }, React.createElement(Fragment, null, U.onUnmount(unlisten), updatePath), React.createElement(Fragment, null, renderedElement));
+  }, React.createElement(Fragment, null, U.onUnmount(unlisten), updatePath, syncWithHistory), React.createElement(Fragment, null, renderedElement));
 }
