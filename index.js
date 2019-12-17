@@ -91,7 +91,7 @@ export function Router({
     routes,
     R.map(route => {
       const keys = []
-      const regexp = pathToRegexp(route.path, keys)
+      const regexp = pathToRegexp(route.path + "([^/]*)", keys)
 
       return {
         keys,
@@ -186,25 +186,24 @@ export function Router({
     U.debounce(0),
 
     U.mapValue(([route = {}, props]) => {
-      const element = U.thru(
-        route,
-        R.ifElse(R.propSatisfies(R.isNil, "Component"),
-          R.always(null),
-          ({ Component }) => React.createElement(Component, props)
-        )
-      )
       const nowrap = R.isNil(ParentComponent) || R.propEq("noParent", true, route)
 
       return U.thru(
-        element,
-        R.ifElse(R.always(nowrap),
-          R.identity,
-          () => (
-            <ParentComponent>
-              { element }
-            </ParentComponent>
+        route,
+        R.ifElse(R.propSatisfies(R.isNil, "Component"),
+          R.always(null),
+          R.pipe(
+            ({ Component }) => React.createElement(Component, props),
+            R.ifElse(R.always(nowrap),
+              R.identity,
+              (element) => (
+                <ParentComponent>
+                  { element }
+                </ParentComponent>
+              )
+            ),
           )
-        ),
+        )
       )
     })
   )
