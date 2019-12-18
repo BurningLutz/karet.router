@@ -7,7 +7,9 @@
   "author": "BurningLutz",
   "license": "MIT",
   "scripts": {
-    "dist": "rm -rf dist; babel index.js -o dist/index.es.js"
+    "dist": "rm -rf dist; babel index.js -o dist/index.es.js",
+    "preversion": "yarn dist",
+    "postversion": "git push && git push --tags"
   },
   "peerDependencies": {
     "karet": "^4.1.0",
