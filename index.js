@@ -6,6 +6,7 @@ import { curry } from "ramda"
 import { createBrowserHistory } from "history"
 import invariant from "invariant"
 import { pathToRegexp } from "path-to-regexp"
+import cryptoRandomString from "crypto-random-string"
 
 const RouterContext = React.createContext()
 const history = createBrowserHistory()
@@ -193,7 +194,7 @@ export function Router({
         R.ifElse(R.propSatisfies(R.isNil, "Component"),
           R.always(null),
           R.pipe(
-            ({ Component }) => React.createElement(Component, props),
+            ({ Component }) => React.createElement(Component, { key: cryptoRandomString({ length: 8 }), ...props }),
             R.ifElse(R.always(nowrap),
               R.identity,
               (element) => (

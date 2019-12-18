@@ -10,13 +10,10 @@
     "dist": "rm -rf dist; babel index.js -o dist/index.es.js"
   },
   "peerDependencies": {
-    "history": "^4.10.1",
-    "invariant": "^2.2.4",
     "karet": "^4.1.0",
     "karet.util": "^0.19.1",
     "kefir": "^3.7.0",
     "kefir.ramda": "^0.26.0",
-    "path-to-regexp": "^6.1.0",
     "ramda": "^0.26.1",
     "react": "^16.8.0"
   },
@@ -26,5 +23,11 @@
     "@babel/preset-react": "^7.7.4",
     "eslint": "^6.7.2",
     "eslint-plugin-react": "^7.17.0"
+  },
+  "dependencies": {
+    "crypto-random-string": "^3.0.1",
+    "history": "^4.10.1",
+    "invariant": "^2.2.4",
+    "path-to-regexp": "^6.1.0"
   }
 }
