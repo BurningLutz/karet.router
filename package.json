@@ -25,7 +25,6 @@
     "eslint-plugin-react": "^7.17.0"
   },
   "dependencies": {
-    "crypto-random-string": "^3.0.1",
     "history": "^4.10.1",
     "invariant": "^2.2.4",
     "path-to-regexp": "^6.1.0"

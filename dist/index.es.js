@@ -6,7 +6,12 @@ import { curry } from "ramda";
 import { createBrowserHistory } from "history";
 import invariant from "invariant";
 import { pathToRegexp } from "path-to-regexp";
-import cryptoRandomString from "crypto-random-string";
+
+function randomString(length) {
+  const chars = "0123456789abcdef";
+  return U.thru(R.times(() => chars[Math.floor(Math.random() * chars.length)], length), R.join(""));
+}
+
 const RouterContext = React.createContext();
 const history = createBrowserHistory();
 export const push = curry((rwHistory, to) => {
@@ -64,7 +69,9 @@ export function Router({
   // inject transformed paths
   routes = U.thru(routes, R.map(route => {
     const keys = [];
-    const regexp = pathToRegexp(route.path + "([^/]*)", keys);
+    const regexp = pathToRegexp(route.path + "(/|[?#].*)?", keys, {
+      strict: true
+    });
     return {
       keys,
       regexp,
@@ -148,9 +155,7 @@ export function Router({
     return U.thru(route, R.ifElse(R.propSatisfies(R.isNil, "Component"), R.always(null), R.pipe(({
       Component
     }) => React.createElement(Component, {
-      key: cryptoRandomString({
-        length: 8
-      }),
+      key: randomString(8),
       ...props
     }), R.ifElse(R.always(nowrap), R.identity, element => React.createElement(ParentComponent, null, element)))));
   }));
