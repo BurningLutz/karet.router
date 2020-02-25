@@ -18,8 +18,8 @@ function randomString(length) {
 const RouterContext = React.createContext()
 const history = createBrowserHistory()
 
-export const push = curry((rwHistory, to) => {
-  const { next } = U.destructure(rwHistory)
+export const push = curry((aHistory, to) => {
+  const { next } = U.destructure(aHistory)
 
   const url = new URL(to, window.location.href)
   // the origin should be the same if `to` is a relative path, and History API
@@ -44,9 +44,9 @@ export function Link({
 
   children,
 }) {
-  const rwHistory = useContext(RouterContext)
-  invariant(rwHistory, "The Link should be used inside a Router.")
-  const { currentPath, next } = U.destructure(rwHistory)
+  const aHistory = useContext(RouterContext)
+  invariant(aHistory, "The Link should be used inside a Router.")
+  const { currentPath, next } = U.destructure(aHistory)
 
   const regexp = pathToRegexp(to.replace(/\?/g, "\\?"), undefined, { end: false })
   const isActive = U.thru(
@@ -76,7 +76,7 @@ export function Link({
       onClick={U.actions(
         U.stopPropagation,
         U.preventDefault,
-        () => push(rwHistory, to),
+        () => push(aHistory, to),
       )}
     >
       { children }
@@ -91,8 +91,8 @@ const findFirstMatchedRoute = U.lift(path => R.find(
 
 export function Router({
   routes,
-  ParentComponent,
-  rwHistory = U.atom(),
+  parent,
+  aHistory = U.atom(),
 }) {
   // inject transformed paths
   routes = U.thru(
@@ -109,7 +109,7 @@ export function Router({
     })
   )
 
-  const { currentPath, currentProps, next } = U.destructure(rwHistory)
+  const { currentPath, currentProps, next } = U.destructure(aHistory)
 
   const unlisten = history.listen(({ pathname, search, hash }, type) => {
     // POP means user clicked the back to forward button of browser
@@ -194,21 +194,17 @@ export function Router({
     U.debounce(0),
 
     U.mapValue(([route = {}, props]) => {
-      const nowrap = R.isNil(ParentComponent) || R.propEq("noParent", true, route)
+      const nowrap = R.isNil(parent) || R.propEq("noParent", true, route)
 
       return U.thru(
         route,
-        R.ifElse(R.propSatisfies(R.isNil, "Component"),
+        R.ifElse(R.propSatisfies(R.isNil, "type"),
           R.always(null),
           R.pipe(
-            ({ Component }) => React.createElement(Component, { key: randomString(8), ...props }),
+            ({ type }) => React.createElement(type, { key: randomString(8), ...props }),
             R.ifElse(R.always(nowrap),
               R.identity,
-              (element) => (
-                <ParentComponent>
-                  { element }
-                </ParentComponent>
-              )
+              element => React.createElement(parent, null, element),
             ),
           )
         )
@@ -217,7 +213,7 @@ export function Router({
   )
 
   return (
-    <RouterContext.Provider value={rwHistory}>
+    <RouterContext.Provider value={aHistory}>
       <Fragment>
         { U.onUnmount(unlisten) }
         { updatePath }
