@@ -8,7 +8,7 @@
   "license": "MIT",
   "scripts": {
     "dist": "rm -rf dist; babel index.js -o dist/index.es.js",
-    "preversion": "yarn dist",
+    "preversion": "yarn dist; git add dist",
     "postversion": "git push && git push --tags"
   },
   "peerDependencies": {
