@@ -90,14 +90,30 @@ const findFirstMatchedRoute = U.lift(path => R.find(
   ({ regexp }) => regexp.test(path)
 ))
 
+const voidPromise = new Promise(R.identity)
+
 export function Router({
   routes,
   parent,
   aHistory = U.atom(),
+
+  fallback,
 }) {
   // inject transformed paths
   routes = U.thru(
     routes,
+    // append a redirect route if fallback is provided
+    U.ifElse(R.isNil(fallback),
+      R.identity,
+      R.append({
+        path: "",
+        loader: async () => {
+          push(aHistory, fallback)
+
+          return voidPromise
+        } 
+      })
+    ),
     R.map(route => {
       const keys = []
       const regexp = pathToRegexp(route.path + "(/|[?#].*)?", keys, { strict: true })
@@ -107,7 +123,7 @@ export function Router({
         regexp,
         ...route,
       }
-    })
+    }),
   )
 
   const { currentPath, currentProps, next } = U.destructure(aHistory)
