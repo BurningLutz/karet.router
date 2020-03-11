@@ -29,6 +29,7 @@ export const push = curry((aHistory, to) => {
 export const goBack = () => history.goBack();
 export function Link({
   to,
+  exact = false,
   activeClassName,
   pendingClassName,
   className,
@@ -42,7 +43,7 @@ export function Link({
     next
   } = U.destructure(aHistory);
   const regexp = pathToRegexp(to.replace(/\?/g, "\\?"), undefined, {
-    end: false
+    end: exact
   });
   const isActive = U.thru(currentPath, U.mapValue(path => regexp.test(path)));
   const isPending = U.thru(next, R.ifElse(R.isNil, R.always(false), R.pipe(U.mapValue(({
@@ -61,13 +62,22 @@ const emptyLoader = R.always(Promise.resolve());
 const findFirstMatchedRoute = U.lift(path => R.find(({
   regexp
 }) => regexp.test(path)));
+const voidPromise = new Promise(R.identity);
 export function Router({
   routes,
   parent,
-  aHistory = U.atom()
+  aHistory = U.atom(),
+  fallback
 }) {
   // inject transformed paths
-  routes = U.thru(routes, R.map(route => {
+  routes = U.thru(routes, // append a redirect route if fallback is provided
+  U.ifElse(R.isNil(fallback), R.identity, R.append({
+    path: "",
+    loader: async () => {
+      push(aHistory, fallback);
+      return voidPromise;
+    }
+  })), R.map(route => {
     const keys = [];
     const regexp = pathToRegexp(route.path + "(/|[?#].*)?", keys, {
       strict: true
