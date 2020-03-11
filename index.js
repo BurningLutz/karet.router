@@ -36,6 +36,7 @@ export const goBack = () => history.goBack()
 
 export function Link({
   to,
+  exact = false,
 
   activeClassName,
   pendingClassName,
@@ -48,7 +49,7 @@ export function Link({
   invariant(aHistory, "The Link should be used inside a Router.")
   const { currentPath, next } = U.destructure(aHistory)
 
-  const regexp = pathToRegexp(to.replace(/\?/g, "\\?"), undefined, { end: false })
+  const regexp = pathToRegexp(to.replace(/\?/g, "\\?"), undefined, { end: exact })
   const isActive = U.thru(
     currentPath,
     U.mapValue(path => regexp.test(path)),
