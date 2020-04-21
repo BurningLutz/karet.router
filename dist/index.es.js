@@ -6,12 +6,6 @@ import { curry } from "ramda";
 import { createBrowserHistory } from "history";
 import invariant from "invariant";
 import { pathToRegexp } from "path-to-regexp";
-
-function randomString(length) {
-  const chars = "0123456789abcdef";
-  return U.thru(R.times(() => chars[Math.floor(Math.random() * chars.length)], length), R.join(""));
-}
-
 const RouterContext = React.createContext();
 const history = createBrowserHistory();
 export const push = curry((aHistory, to) => {
@@ -164,10 +158,7 @@ export function Router({
     const nowrap = R.isNil(parent) || R.propEq("noParent", true, route);
     return U.thru(route, R.ifElse(R.propSatisfies(R.isNil, "type"), R.always(null), R.pipe(({
       type
-    }) => React.createElement(type, {
-      key: randomString(8),
-      ...props
-    }), R.ifElse(R.always(nowrap), R.identity, element => React.createElement(parent, null, element)))));
+    }) => React.createElement(type, props), R.ifElse(R.always(nowrap), R.identity, element => React.createElement(parent, null, element)))));
   }));
   return React.createElement(RouterContext.Provider, {
     value: aHistory
