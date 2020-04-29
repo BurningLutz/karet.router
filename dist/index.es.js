@@ -28,6 +28,7 @@ export function Link({
   pendingClassName,
   className,
   activeStyle,
+  type: LinkType = "a",
   children
 }) {
   const aHistory = useContext(RouterContext);
@@ -45,7 +46,8 @@ export function Link({
     search,
     hash
   }) => pathname + search + hash), U.mapValue(path => regexp.test(path)))));
-  return React.createElement("a", {
+  return React.createElement(LinkType, {
+    "karet-lift": true,
     href: to,
     style: U.when(isActive, activeStyle),
     className: U.cns(className, U.when(isActive, activeClassName), U.when(isPending, pendingClassName)),
