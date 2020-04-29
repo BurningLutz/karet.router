@@ -1,99 +1,23 @@
 import * as React from "karet"
-import { Fragment, useContext } from "karet"
+import { Fragment } from "karet"
 import * as U from "karet.util"
 import * as R from "kefir.ramda"
-import { curry } from "ramda"
-import { createBrowserHistory } from "history"
-import invariant from "invariant"
 import { pathToRegexp } from "path-to-regexp"
 
-const RouterContext = React.createContext()
-const history       = createBrowserHistory()
+import { push, history } from "./historyUtil"
+import { RouterContext } from "./common"
 
-export const push = curry((aHistory, to) => {
-  const { next } = U.destructure(aHistory)
+const voidPromise     = new Promise(R.identity)
+const emptyLoader     = R.always(Promise.resolve())
+const fstMatchedRoute = U.lift(path => R.find(({ regexp }) => regexp.test(path)))
 
-  const url = new URL(to, window.location.href)
-  // the origin should be the same if `to` is a relative path, and History API
-  // only support relative path securely.
-  invariant(url.origin === window.location.origin, "The `to` property should be a relative path.")
-
-  next.set({
-    ...R.pick(["pathname", "search", "hash"], url),
-    type: "PUSH",
-  })
-})
-
-export const goBack = () => history.goBack()
-
-export function Link({
-  to,
-  exact = false,
-
-  activeClassName,
-  pendingClassName,
-  className,
-  activeStyle,
-
-  type : LinkType = "a",
-
-  children,
-}) {
-  const aHistory = useContext(RouterContext)
-  invariant(aHistory, "The Link should be used inside a Router.")
-
-  const { currentPath, next } = U.destructure(aHistory)
-
-  const regexp   = pathToRegexp(to.replace(/\?/g, "\\?"), undefined, { end: exact })
-  const isActive = U.thru(
-    currentPath,
-    U.mapValue(path => regexp.test(path)),
-  )
-  const isPending = U.thru(
-    next,
-    R.ifElse(R.isNil,
-      R.always(false),
-      R.pipe(
-        U.mapValue(({ pathname, search, hash }) => pathname + search + hash),
-        U.mapValue(path => regexp.test(path)),
-      )
-    ),
-  )
-
-  return (
-    <LinkType
-      karet-lift
-      href={to}
-      style={U.when(isActive, activeStyle)}
-      className={U.cns(
-        className,
-        U.when(isActive, activeClassName),
-        U.when(isPending, pendingClassName),
-      )}
-      onClick={U.actions(
-        U.stopPropagation,
-        U.preventDefault,
-        () => push(aHistory, to),
-      )}
-    >
-      { children }
-    </LinkType>
-  )
-}
-
-const emptyLoader = R.always(Promise.resolve())
-const findFirstMatchedRoute = U.lift(path => R.find(
-  ({ regexp }) => regexp.test(path)
-))
-
-const voidPromise = new Promise(R.identity)
-
-export function Router({
-  routes,
-  parent,
+export default function Router({
   aHistory = U.atom(),
 
+  routes,
   fallback,
+
+  parent,
 }) {
   // inject transformed paths
   routes = U.thru(
@@ -144,7 +68,7 @@ export function Router({
     }))
   )
 
-  const prepareWhenNextChanged = U.thru(
+  const preloadNext = U.thru(
     next,
     U.skipWhen(R.isNil),
     U.flatMapLatest(({ pathname, search, hash, type }) => U.fromPromise(async () => {
@@ -155,7 +79,7 @@ export function Router({
       )
       const { loader = emptyLoader, pathParams = {} } = U.thru(
         routes,
-        findFirstMatchedRoute(pathname),
+        fstMatchedRoute(pathname),
         R.ifElse(R.isNil,
           R.always({}),
           ({ keys, regexp, loader }) => ({
@@ -182,7 +106,7 @@ export function Router({
     }))
   )
   const updatePath = U.thru(
-    prepareWhenNextChanged,
+    preloadNext,
     U.consume(async ({ path, props, type }) => {
       U.holding(() => {
         currentPath.set(path)
@@ -198,7 +122,7 @@ export function Router({
 
   const currentRoute = U.thru(
     routes,
-    findFirstMatchedRoute(U.skipWhen(R.isNil, currentPath)),
+    fstMatchedRoute(U.skipWhen(R.isNil, currentPath)),
   )
 
   const renderedElement = U.thru(
