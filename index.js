@@ -35,6 +35,8 @@ export function Link({
   className,
   activeStyle,
 
+  type : LinkType = "a",
+
   children,
 }) {
   const aHistory = useContext(RouterContext)
@@ -59,7 +61,8 @@ export function Link({
   )
 
   return (
-    <a
+    <LinkType
+      karet-lift
       href={to}
       style={U.when(isActive, activeStyle)}
       className={U.cns(
@@ -74,7 +77,7 @@ export function Link({
       )}
     >
       { children }
-    </a>
+    </LinkType>
   )
 }
 
