@@ -7,9 +7,11 @@ import { push, history } from "./historyUtil";
 import { RouterContext } from "./common";
 const voidPromise = new Promise(R.identity);
 const emptyLoader = R.always(Promise.resolve());
-const fstMatchedRoute = U.lift(path => R.find(({
+
+const matchedRoute = path => R.find(({
   regexp
-}) => regexp.test(path)));
+}) => regexp.test(path));
+
 export default function Router({
   aHistory = U.atom(),
   routes,
@@ -36,8 +38,8 @@ export default function Router({
     };
   }));
   const {
-    currentPath,
-    currentProps,
+    prevData,
+    currData,
     next
   } = U.destructure(aHistory);
   const unlisten = history.listen(({
@@ -72,7 +74,7 @@ export default function Router({
     const {
       loader = emptyLoader,
       pathParams = {}
-    } = U.thru(routes, fstMatchedRoute(pathname), R.ifElse(R.isNil, R.always({}), ({
+    } = U.thru(routes, matchedRoute(pathname), R.ifElse(R.isNil, R.always({}), ({
       keys,
       regexp,
       loader
@@ -90,14 +92,16 @@ export default function Router({
       type
     };
   })));
-  const updatePath = U.thru(preloadNext, U.consume(async ({
+  const updateCurrData = U.thru(preloadNext, U.consume(async ({
     path,
     props,
     type
   }) => {
     U.holding(() => {
-      currentPath.set(path);
-      currentProps.set(props);
+      currData.set({
+        path,
+        props
+      });
       next.remove();
     });
 
@@ -105,15 +109,18 @@ export default function Router({
       history.push(path);
     }
   }));
-  const currentRoute = U.thru(routes, fstMatchedRoute(U.skipWhen(R.isNil, currentPath)));
-  const renderedElement = U.thru(U.template([currentRoute, currentProps]), // this is a trick to workaround the issue that kefir has no simultaneous event support
-  U.debounce(0), U.mapValue(([route = {}, props]) => {
+  const updatePrevData = U.thru(currData, U.consume(data => prevData.set(data)));
+  const renderedElement = U.thru(currData, U.skipWhen(R.isNil), U.mapValue(({
+    path,
+    props
+  }) => {
+    const route = matchedRoute(path)(routes) || {};
     const nowrap = R.isNil(parent) || R.propEq("noParent", true, route);
     return U.thru(route, R.ifElse(R.propSatisfies(R.isNil, "type"), R.always(null), R.pipe(({
-      type
-    }) => React.createElement(type, props), R.ifElse(R.always(nowrap), R.identity, element => React.createElement(parent, null, element)))));
+      type: T
+    }) => React.createElement(Fragment, null, React.createElement(T, props), updatePrevData), R.ifElse(R.always(nowrap), R.identity, element => React.createElement(parent, null, element)))));
   }));
   return React.createElement(RouterContext.Provider, {
     value: aHistory
-  }, React.createElement(Fragment, null, U.onUnmount(unlisten), updatePath, syncWithHistory), React.createElement(Fragment, null, renderedElement));
+  }, React.createElement(Fragment, null, U.onUnmount(unlisten), syncWithHistory, updateCurrData), React.createElement(Fragment, null, renderedElement));
 }
