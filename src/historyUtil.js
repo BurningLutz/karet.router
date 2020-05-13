@@ -8,6 +8,8 @@ export const history = createBrowserHistory()
 
 export const goBack = () => history.goBack()
 
+export const reload = () => history.replace(history.location)
+
 export const push = curry((aHistory, to) => {
   const { next } = U.destructure(aHistory)
 

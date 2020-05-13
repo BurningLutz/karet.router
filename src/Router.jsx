@@ -49,7 +49,8 @@ export default function Router({
 
   const unlisten = history.listen(({ pathname, search, hash }, type) => {
     // POP means user clicked the back to forward button of browser
-    if (type === "POP") {
+    // REPLACE is typically triggered by a `reload`
+    if (type === "POP" || type === "REPLACE") {
       next.set({ pathname, search, hash, type })
     }
   })
