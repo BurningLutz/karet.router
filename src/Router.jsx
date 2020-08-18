@@ -136,8 +136,11 @@ export default function Router({
       // always save scroll position when scrolling
       const currKey = history.location.key
       window.onscroll = function () {
-        SCROLLS[currKey] = window.scrollY
-        console.log(SCROLLS, currKey, history.location.key)
+        // at the end of transitioning, the key will be changed, and at that time
+        // scrollY will be set to zero which should be ignored
+        if (history.location.key === currKey) {
+          SCROLLS[currKey] = window.scrollY
+        }
       }
 
       U.holding(() => {
