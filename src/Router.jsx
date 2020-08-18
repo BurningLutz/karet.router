@@ -137,7 +137,7 @@ export default function Router({
       const currKey = history.location.key
       window.onscroll = function () {
         SCROLLS[currKey] = window.scrollY
-        console.log(SCROLLS, currKey)
+        console.log(SCROLLS, currKey, history.location.key)
       }
 
       U.holding(() => {
@@ -146,7 +146,6 @@ export default function Router({
       })
 
       if (type === "PUSH") {
-        SCROLLS[currKey] = window.scrollY
         history.push(path)
       }
 
