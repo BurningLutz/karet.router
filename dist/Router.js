@@ -1,6 +1,6 @@
 import * as React from "karet";
 import { Fragment } from "karet";
-import { Component } from "react";
+import { useEffect } from "react";
 import * as U from "karet.util";
 import * as R from "kefir.ramda";
 import { pathToRegexp } from "path-to-regexp";
@@ -16,21 +16,12 @@ const matchedRoute = path => R.find(({
 
 const SCROLLS = {};
 
-class Frag extends Component {
-  componentDidMount() {
-    const {
-      onDidMount
-    } = this.props;
-    onDidMount();
-  }
-
-  render() {
-    const {
-      children
-    } = this.props;
-    return React.createElement(Fragment, null, children);
-  }
-
+function Frag({
+  onDidMount,
+  children
+}) {
+  useEffect(onDidMount);
+  return React.createElement(Fragment, null, children);
 }
 
 export default function Router({
