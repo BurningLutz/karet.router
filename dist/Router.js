@@ -7,6 +7,7 @@ import { push, history } from "./historyUtil";
 import { RouterContext } from "./common";
 const voidPromise = new Promise(R.identity);
 const emptyLoader = R.always(Promise.resolve());
+const emptyGetTitle = R.always(Promise.resolve());
 
 const matchedRoute = path => R.find(({
   regexp
@@ -74,6 +75,7 @@ export default function Router({
     const searchParams = U.thru(new URLSearchParams(search), Array.from, R.fromPairs);
     const {
       loader = emptyLoader,
+      getTitle = emptyGetTitle,
       pathParams = {}
     } = U.thru(routes, matchedRoute(pathname), R.ifElse(R.isNil, R.always({}), ({
       keys,
@@ -87,16 +89,19 @@ export default function Router({
     })));
     const params = R.mergeAll([pathParams, searchParams]);
     const props = await loader(params, hash);
+    const title = await getTitle(props, params, hash);
     return {
       path: pathname + search + hash,
       props,
-      type
+      type,
+      title
     };
   })));
   const updateCurrData = U.thru(preloadNext, U.consume(async ({
     path,
     props,
-    type
+    type,
+    title
   }) => {
     U.holding(() => {
       currData.set({
@@ -108,6 +113,12 @@ export default function Router({
 
     if (type === "PUSH") {
       history.push(path);
+    }
+
+    if (!R.isNil(title)) {
+      document.title = title;
+    } else {
+      document.title = document.querySelector("html head title").textContent;
     }
   }));
   const updatePrevData = U.thru(currData, U.consume(data => prevData.set(data)));
