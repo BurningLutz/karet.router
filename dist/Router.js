@@ -130,11 +130,8 @@ export default function Router({
     type,
     title
   }) => {
-    if (type === "PUSH") {
-      SCROLLS[history.location.key] = window.scrollY;
-      history.push(path);
-    }
-
+    // always save scroll position when transitioning
+    SCROLLS[history.location.key] = window.scrollY;
     U.holding(() => {
       currData.set({
         path,
@@ -143,6 +140,10 @@ export default function Router({
       });
       next.remove();
     });
+
+    if (type === "PUSH") {
+      history.push(path);
+    }
 
     if (!R.isNil(title)) {
       aTitle.set(title);
