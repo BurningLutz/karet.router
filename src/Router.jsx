@@ -7,9 +7,10 @@ import { pathToRegexp } from "path-to-regexp"
 import { push, history } from "./historyUtil"
 import { RouterContext } from "./common"
 
-const voidPromise  = new Promise(R.identity)
-const emptyLoader  = R.always(Promise.resolve())
-const matchedRoute = path => R.find(({ regexp }) => regexp.test(path))
+const voidPromise   = new Promise(R.identity)
+const emptyLoader   = R.always(Promise.resolve())
+const emptyGetTitle = R.always(Promise.resolve())
+const matchedRoute  = path => R.find(({ regexp }) => regexp.test(path))
 
 export default function Router({
   aHistory = U.atom(),
@@ -30,7 +31,7 @@ export default function Router({
           push(aHistory, fallback)
 
           return voidPromise
-        } 
+        }
       })
     ),
     R.map(route => {
@@ -74,7 +75,7 @@ export default function Router({
         Array.from,
         R.fromPairs,
       )
-      const { loader = emptyLoader, pathParams = {} } = U.thru(routes,
+      const { loader = emptyLoader, getTitle = emptyGetTitle, pathParams = {} } = U.thru(routes,
         matchedRoute(pathname),
         R.ifElse(R.isNil,
           R.always({}),
@@ -92,16 +93,18 @@ export default function Router({
       const params = R.mergeAll([pathParams, searchParams])
 
       const props = await loader(params, hash)
+      const title = await getTitle(props, params, hash)
 
       return {
         path: pathname + search + hash,
         props,
         type,
+        title,
       }
     }))
   )
   const updateCurrData = U.thru(preloadNext,
-    U.consume(async ({ path, props, type }) => {
+    U.consume(async ({ path, props, type, title }) => {
       U.holding(() => {
         currData.set({ path, props })
         next.remove()
@@ -109,6 +112,12 @@ export default function Router({
 
       if (type === "PUSH") {
         history.push(path)
+      }
+
+      if (!R.isNil(title)) {
+        document.title = title
+      } else {
+        document.title = document.querySelector("html head title").textContent
       }
     }),
   )
