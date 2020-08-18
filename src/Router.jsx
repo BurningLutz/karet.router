@@ -16,9 +16,13 @@ const matchedRoute  = path => R.find(({ regexp }) => regexp.test(path))
 const SCROLLS = {}
 const INITIAL_KEY = "!@#$%^&*()"
 
+function getHistoryKey() {
+  return history.location.key || INITIAL_KEY
+}
+
 function ScrollRestoration({ type, children }) {
   function restoreScroll() {
-    const currKey = history.location.key || INITIAL_KEY
+    const currKey = getHistoryKey()
     const scrollY = SCROLLS[currKey]
 
     let updateCounter = 0
@@ -31,8 +35,6 @@ function ScrollRestoration({ type, children }) {
         requestAnimationFrame(update)
       }
     }
-
-    console.log(currKey, type, SCROLLS)
 
     if (type === "POP" && SCROLLS[currKey] !== undefined) {
       requestAnimationFrame(update)
@@ -145,17 +147,15 @@ export default function Router({
   const updateCurrData = U.thru(preloadNext,
     U.consume(async ({ path, props, type, title }) => {
       // always save scroll position when scrolling
-      const pageKey = history.location.key || INITIAL_KEY
+      const pageKey = getHistoryKey()
       window.onscroll = function () {
-        const currKey = history.location.key || INITIAL_KEY
+        const currKey = getHistoryKey()
 
         // at the end of transitioning, the key will be changed, and at that time
         // scrollY will be set to zero which should be ignored
         if (currKey === pageKey) {
           SCROLLS[pageKey] = window.scrollY
         }
-
-        console.log(pageKey, currKey, type, SCROLLS)
       }
 
       U.holding(() => {
