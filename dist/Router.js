@@ -13,6 +13,7 @@ const matchedRoute = path => R.find(({
   regexp
 }) => regexp.test(path));
 
+const SCROLLS = {};
 export default function Router({
   aHistory = U.atom(),
   routes,
@@ -80,12 +81,12 @@ export default function Router({
     } = U.thru(routes, matchedRoute(pathname), R.ifElse(R.isNil, R.always({}), ({
       keys,
       regexp,
-      loader
+      ...rest
     }) => ({
-      loader,
       pathParams: U.thru(regexp.exec(pathname), R.drop(1), R.zip(keys), R.map(([{
         name
-      }, val]) => [name, val]), R.fromPairs)
+      }, val]) => [name, val]), R.fromPairs),
+      ...rest
     })));
     const params = R.mergeAll([pathParams, searchParams]);
     const props = await loader(params, hash);
@@ -103,17 +104,19 @@ export default function Router({
     type,
     title
   }) => {
+    if (type === "PUSH") {
+      SCROLLS[history.location.key] = window.scrollY;
+      history.push(path);
+    }
+
     U.holding(() => {
       currData.set({
         path,
-        props
+        props,
+        type
       });
       next.remove();
     });
-
-    if (type === "PUSH") {
-      history.push(path);
-    }
 
     if (!R.isNil(title)) {
       document.title = title;
@@ -124,13 +127,29 @@ export default function Router({
   const updatePrevData = U.thru(currData, U.consume(data => prevData.set(data)));
   const renderedElement = U.thru(currData, U.skipWhen(R.isNil), U.mapValue(({
     path,
-    props
+    props,
+    type
   }) => {
     const route = matchedRoute(path)(routes) || {};
     const nowrap = R.isNil(parent) || R.propEq("noParent", true, route);
+
+    function restoreScroll(el) {
+      if (el !== null) {
+        const currKey = history.location.key;
+
+        if (type === "POP" && SCROLLS[currKey] !== undefined) {
+          window.scrollTo({
+            top: SCROLLS[currKey]
+          });
+        }
+      }
+    }
+
     return U.thru(route, R.ifElse(R.propSatisfies(R.isNil, "type"), R.always(null), R.pipe(({
       type: T
-    }) => React.createElement(Fragment, null, React.createElement(T, props), updatePrevData), R.ifElse(R.always(nowrap), R.identity, element => React.createElement(parent, null, element)))));
+    }) => React.createElement(Fragment, {
+      refTo: restoreScroll
+    }, React.createElement(T, props), updatePrevData), R.ifElse(R.always(nowrap), R.identity, element => React.createElement(parent, null, element)))));
   }));
   return React.createElement(RouterContext.Provider, {
     value: aHistory
