@@ -133,18 +133,20 @@ export default function Router({
   )
   const updateCurrData = U.thru(preloadNext,
     U.consume(async ({ path, props, type, title }) => {
-      // always save scroll position when transitioning
-      SCROLLS[history.location.key] = window.scrollY
-      console.log(history.location, window.scrollY)
-
-      if (type === "PUSH") {
-        history.push(path)
+      // always save scroll position when scrolling
+      const currKey = history.location.key
+      window.onscroll = function () {
+        SCROLLS[currKey] = window.scrollY
       }
 
       U.holding(() => {
         currData.set({ path, props, type })
         next.remove()
       })
+
+      if (type === "PUSH") {
+        history.push(path)
+      }
 
       if (!R.isNil(title)) {
         aTitle.set(title)
