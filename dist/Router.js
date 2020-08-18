@@ -136,6 +136,7 @@ export default function Router({
 
     window.onscroll = function () {
       SCROLLS[currKey] = window.scrollY;
+      console.log(SCROLLS, currKey);
     };
 
     U.holding(() => {

@@ -137,6 +137,7 @@ export default function Router({
       const currKey = history.location.key
       window.onscroll = function () {
         SCROLLS[currKey] = window.scrollY
+        console.log(SCROLLS, currKey)
       }
 
       U.holding(() => {
