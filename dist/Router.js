@@ -37,6 +37,8 @@ function ScrollRestoration({
       }
     }
 
+    console.log(currKey, type, SCROLLS);
+
     if (type === "POP" && SCROLLS[currKey] !== undefined) {
       requestAnimationFrame(update);
     }
@@ -149,6 +151,8 @@ export default function Router({
       if (currKey === pageKey) {
         SCROLLS[pageKey] = window.scrollY;
       }
+
+      console.log(pageKey, currKey, type, SCROLLS);
     };
 
     U.holding(() => {
