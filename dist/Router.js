@@ -1,3 +1,5 @@
+function _extends() { _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends.apply(this, arguments); }
+
 import * as React from "karet";
 import { Fragment } from "karet";
 import * as U from "karet.util";
@@ -147,9 +149,9 @@ export default function Router({
 
     return U.thru(route, R.ifElse(R.propSatisfies(R.isNil, "type"), R.always(null), R.pipe(({
       type: T
-    }) => React.createElement(Fragment, {
+    }) => React.createElement(Fragment, null, React.createElement(T, _extends({
       refTo: restoreScroll
-    }, React.createElement(T, props), updatePrevData), R.ifElse(R.always(nowrap), R.identity, element => React.createElement(parent, null, element)))));
+    }, props)), updatePrevData), R.ifElse(R.always(nowrap), R.identity, element => React.createElement(parent, null, element)))));
   }));
   return React.createElement(RouterContext.Provider, {
     value: aHistory

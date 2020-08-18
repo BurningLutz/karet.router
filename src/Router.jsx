@@ -149,8 +149,8 @@ export default function Router({
           R.always(null),
           R.pipe(
             ({ type : T }) => (
-              <Fragment refTo={restoreScroll}>
-                <T {...props} />
+              <Fragment>
+                <T refTo={restoreScroll} {...props} />
                 { updatePrevData }
               </Fragment>
             ),
