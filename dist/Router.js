@@ -1,7 +1,6 @@
-function _extends() { _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends.apply(this, arguments); }
-
 import * as React from "karet";
 import { Fragment } from "karet";
+import { Component } from "react";
 import * as U from "karet.util";
 import * as R from "kefir.ramda";
 import { pathToRegexp } from "path-to-regexp";
@@ -16,6 +15,24 @@ const matchedRoute = path => R.find(({
 }) => regexp.test(path));
 
 const SCROLLS = {};
+
+class Frag extends Component {
+  componentDidMount() {
+    const {
+      onDidMount
+    } = this.props;
+    onDidMount();
+  }
+
+  render() {
+    const {
+      children
+    } = this.props;
+    return React.createElement(Fragment, null, children);
+  }
+
+}
+
 export default function Router({
   aHistory = U.atom(),
   routes,
@@ -135,23 +152,21 @@ export default function Router({
     const route = matchedRoute(path)(routes) || {};
     const nowrap = R.isNil(parent) || R.propEq("noParent", true, route);
 
-    function restoreScroll(el) {
-      if (el !== null) {
-        const currKey = history.location.key;
+    function restoreScroll() {
+      const currKey = history.location.key;
 
-        if (type === "POP" && SCROLLS[currKey] !== undefined) {
-          window.scrollTo({
-            top: SCROLLS[currKey]
-          });
-        }
+      if (type === "POP" && SCROLLS[currKey] !== undefined) {
+        window.scrollTo({
+          top: SCROLLS[currKey]
+        });
       }
     }
 
     return U.thru(route, R.ifElse(R.propSatisfies(R.isNil, "type"), R.always(null), R.pipe(({
       type: T
-    }) => React.createElement(Fragment, null, React.createElement(T, _extends({
-      refTo: restoreScroll
-    }, props)), updatePrevData), R.ifElse(R.always(nowrap), R.identity, element => React.createElement(parent, null, element)))));
+    }) => React.createElement(Frag, {
+      onDidMount: restoreScroll
+    }, React.createElement(T, props), updatePrevData), R.ifElse(R.always(nowrap), R.identity, element => React.createElement(parent, null, element)))));
   }));
   return React.createElement(RouterContext.Provider, {
     value: aHistory

@@ -1,5 +1,6 @@
 import * as React from "karet"
 import { Fragment } from "karet"
+import { Component } from "react"
 import * as U from "karet.util"
 import * as R from "kefir.ramda"
 import { pathToRegexp } from "path-to-regexp"
@@ -13,6 +14,24 @@ const emptyGetTitle = R.always(Promise.resolve())
 const matchedRoute  = path => R.find(({ regexp }) => regexp.test(path))
 
 const SCROLLS = {}
+
+class Frag extends Component {
+  componentDidMount() {
+    const { onDidMount } = this.props
+
+    onDidMount()
+  }
+
+  render() {
+    const { children } = this.props
+
+    return (
+      <Fragment>
+        { children }
+      </Fragment>
+    )
+  }
+}
 
 export default function Router({
   aHistory = U.atom(),
@@ -135,12 +154,10 @@ export default function Router({
       const route  = matchedRoute(path)(routes) || {}
       const nowrap = R.isNil(parent) || R.propEq("noParent", true, route)
 
-      function restoreScroll(el) {
-        if (el !== null) {
-          const currKey = history.location.key
-          if (type === "POP" && SCROLLS[currKey] !== undefined) {
-            window.scrollTo({ top: SCROLLS[currKey] })
-          }
+      function restoreScroll() {
+        const currKey = history.location.key
+        if (type === "POP" && SCROLLS[currKey] !== undefined) {
+          window.scrollTo({ top: SCROLLS[currKey] })
         }
       }
 
@@ -149,10 +166,10 @@ export default function Router({
           R.always(null),
           R.pipe(
             ({ type : T }) => (
-              <Fragment>
-                <T refTo={restoreScroll} {...props} />
+              <Frag onDidMount={restoreScroll}>
+                <T {...props} />
                 { updatePrevData }
-              </Fragment>
+              </Frag>
             ),
             R.ifElse(R.always(nowrap),
               R.identity,
