@@ -20,6 +20,7 @@ function ScrollRestoration({ type, children }) {
     const currKey = history.location.key
 
     if (type === "POP" && SCROLLS[currKey] !== undefined) {
+      console.log(SCROLLS, type, currKey)
       // wait for all nodes to be rendered
       requestAnimationFrame(() => {
         window.scrollTo({ top: SCROLLS[currKey] })
@@ -134,15 +135,16 @@ export default function Router({
     U.consume(async ({ path, props, type, title }) => {
       // always save scroll position when transitioning
       SCROLLS[history.location.key] = window.scrollY
+      console.log(history.location, window.scrollY)
+
+      if (type === "PUSH") {
+        history.push(path)
+      }
 
       U.holding(() => {
         currData.set({ path, props, type })
         next.remove()
       })
-
-      if (type === "PUSH") {
-        history.push(path)
-      }
 
       if (!R.isNil(title)) {
         aTitle.set(title)
