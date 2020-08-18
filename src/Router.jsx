@@ -79,14 +79,14 @@ export default function Router({
         matchedRoute(pathname),
         R.ifElse(R.isNil,
           R.always({}),
-          ({ keys, regexp, loader }) => ({
-            loader,
+          ({ keys, regexp, ...rest }) => ({
             pathParams: U.thru(regexp.exec(pathname),
               R.drop(1),
               R.zip(keys),
               R.map(([{ name }, val]) => [name, val]),
               R.fromPairs,
-            )
+            ),
+            ...rest
           }),
         ),
       )
