@@ -1,6 +1,6 @@
 {
   "name": "karet.router",
-  "version": "2.3.1",
+  "version": "2.4.0",
   "description": "A router written with Kefir and Karet.",
   "module": "dist/index.js",
   "repository": "https://github.com/BurningLutz/karet.router",
