@@ -149,6 +149,7 @@ export default function Router({
     });
 
     if (type === "PUSH") {
+      SCROLLS[currKey] = window.scrollY;
       history.push(path);
     }
 
