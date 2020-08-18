@@ -58,6 +58,8 @@ export default function Router({
 
   parent,
 }) {
+  window.history.scrollRestoration = "manual"
+
   // inject transformed paths
   routes = U.thru(routes,
     // append a redirect route if fallback is provided
@@ -146,26 +148,17 @@ export default function Router({
   )
   const updateCurrData = U.thru(preloadNext,
     U.consume(async ({ path, props, type, title }) => {
-      // always save scroll position when scrolling
-      const pageKey = getHistoryKey()
-      window.onscroll = function () {
+      if (type === "PUSH") {
         const currKey = getHistoryKey()
+        SCROLLS[currKey] = window.scrollY
 
-        // at the end of transitioning, the key will be changed, and at that time
-        // scrollY will be set to zero which should be ignored
-        if (currKey === pageKey) {
-          SCROLLS[pageKey] = window.scrollY
-        }
+        history.push(path)
       }
 
       U.holding(() => {
         currData.set({ path, props, type })
         next.remove()
       })
-
-      if (type === "PUSH") {
-        history.push(path)
-      }
 
       if (!R.isNil(title)) {
         aTitle.set(title)
