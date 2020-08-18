@@ -12,6 +12,8 @@ const emptyLoader   = R.always(Promise.resolve())
 const emptyGetTitle = R.always(Promise.resolve())
 const matchedRoute  = path => R.find(({ regexp }) => regexp.test(path))
 
+const SCROLLS = {}
+
 export default function Router({
   aHistory = U.atom(),
 
@@ -105,14 +107,15 @@ export default function Router({
   )
   const updateCurrData = U.thru(preloadNext,
     U.consume(async ({ path, props, type, title }) => {
-      U.holding(() => {
-        currData.set({ path, props })
-        next.remove()
-      })
-
       if (type === "PUSH") {
+        SCROLLS[history.location.key] = window.scrollY
         history.push(path)
       }
+
+      U.holding(() => {
+        currData.set({ path, props, type })
+        next.remove()
+      })
 
       if (!R.isNil(title)) {
         document.title = title
@@ -128,16 +131,25 @@ export default function Router({
 
   const renderedElement = U.thru(currData,
     U.skipWhen(R.isNil),
-    U.mapValue(({ path, props }) => {
+    U.mapValue(({ path, props, type }) => {
       const route  = matchedRoute(path)(routes) || {}
       const nowrap = R.isNil(parent) || R.propEq("noParent", true, route)
+
+      function restoreScroll(el) {
+        if (el !== null) {
+          const currKey = history.location.key
+          if (type === "POP" && SCROLLS[currKey] !== undefined) {
+            window.scrollTo({ top: SCROLLS[currKey] })
+          }
+        }
+      }
 
       return U.thru(route,
         R.ifElse(R.propSatisfies(R.isNil, "type"),
           R.always(null),
           R.pipe(
             ({ type : T }) => (
-              <Fragment>
+              <Fragment refTo={restoreScroll}>
                 <T {...props} />
                 { updatePrevData }
               </Fragment>
