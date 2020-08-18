@@ -16,11 +16,24 @@ const matchedRoute = path => R.find(({
 
 const SCROLLS = {};
 
-function Frag({
-  onDidMount,
+function ScrollRestoration({
+  type,
   children
 }) {
-  useEffect(onDidMount);
+  function restoreScroll() {
+    const currKey = history.location.key;
+
+    if (type === "POP" && SCROLLS[currKey] !== undefined) {
+      // wait for all nodes to be rendered
+      requestAnimationFrame(() => {
+        window.scrollTo({
+          top: SCROLLS[currKey]
+        });
+      });
+    }
+  }
+
+  useEffect(restoreScroll, [type, children]);
   return React.createElement(Fragment, null, children);
 }
 
@@ -49,6 +62,9 @@ export default function Router({
       ...route
     };
   }));
+  const originalTitle = document.title;
+  const aTitle = U.atom();
+  const updateTitle = U.consume((title = originalTitle) => document.title = title, aTitle);
   const {
     prevData,
     currData,
@@ -129,9 +145,9 @@ export default function Router({
     });
 
     if (!R.isNil(title)) {
-      document.title = title;
+      aTitle.set(title);
     } else {
-      document.title = document.querySelector("html head title").textContent;
+      aTitle.remove();
     }
   }));
   const updatePrevData = U.thru(currData, U.consume(data => prevData.set(data)));
@@ -142,24 +158,13 @@ export default function Router({
   }) => {
     const route = matchedRoute(path)(routes) || {};
     const nowrap = R.isNil(parent) || R.propEq("noParent", true, route);
-
-    function restoreScroll() {
-      const currKey = history.location.key;
-
-      if (type === "POP" && SCROLLS[currKey] !== undefined) {
-        window.scrollTo({
-          top: SCROLLS[currKey]
-        });
-      }
-    }
-
     return U.thru(route, R.ifElse(R.propSatisfies(R.isNil, "type"), R.always(null), R.pipe(({
       type: T
-    }) => React.createElement(Frag, {
-      onDidMount: restoreScroll
+    }) => React.createElement(ScrollRestoration, {
+      type: type
     }, React.createElement(T, props), updatePrevData), R.ifElse(R.always(nowrap), R.identity, element => React.createElement(parent, null, element)))));
   }));
   return React.createElement(RouterContext.Provider, {
     value: aHistory
-  }, React.createElement(Fragment, null, U.onUnmount(unlisten), syncWithHistory, updateCurrData), React.createElement(Fragment, null, renderedElement));
+  }, React.createElement(Fragment, null, U.onUnmount(unlisten), syncWithHistory, updateCurrData, updateTitle), React.createElement(Fragment, null, renderedElement));
 }

@@ -15,8 +15,19 @@ const matchedRoute  = path => R.find(({ regexp }) => regexp.test(path))
 
 const SCROLLS = {}
 
-function Frag({ onDidMount, children }) {
-  useEffect(onDidMount)
+function ScrollRestoration({ type, children }) {
+  function restoreScroll() {
+    const currKey = history.location.key
+
+    if (type === "POP" && SCROLLS[currKey] !== undefined) {
+      // wait for all nodes to be rendered
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: SCROLLS[currKey] })
+      })
+    }
+  }
+
+  useEffect(restoreScroll, [type, children])
 
   return (
     <Fragment>
@@ -58,6 +69,9 @@ export default function Router({
       }
     }),
   )
+  const originalTitle = document.title
+  const aTitle = U.atom()
+  const updateTitle = U.consume((title = originalTitle) => document.title = title, aTitle)
 
   const { prevData, currData, next } = U.destructure(aHistory)
 
@@ -129,9 +143,9 @@ export default function Router({
       })
 
       if (!R.isNil(title)) {
-        document.title = title
+        aTitle.set(title)
       } else {
-        document.title = document.querySelector("html head title").textContent
+        aTitle.remove()
       }
     }),
   )
@@ -146,22 +160,16 @@ export default function Router({
       const route  = matchedRoute(path)(routes) || {}
       const nowrap = R.isNil(parent) || R.propEq("noParent", true, route)
 
-      function restoreScroll() {
-        const currKey = history.location.key
-        if (type === "POP" && SCROLLS[currKey] !== undefined) {
-          window.scrollTo({ top: SCROLLS[currKey] })
-        }
-      }
 
       return U.thru(route,
         R.ifElse(R.propSatisfies(R.isNil, "type"),
           R.always(null),
           R.pipe(
             ({ type : T }) => (
-              <Frag onDidMount={restoreScroll}>
+              <ScrollRestoration type={type}>
                 <T {...props} />
                 { updatePrevData }
-              </Frag>
+              </ScrollRestoration>
             ),
             R.ifElse(R.always(nowrap),
               R.identity,
@@ -179,6 +187,7 @@ export default function Router({
         { U.onUnmount(unlisten) }
         { syncWithHistory }
         { updateCurrData }
+        { updateTitle }
       </Fragment>
 
       <Fragment>
