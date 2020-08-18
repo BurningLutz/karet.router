@@ -13,30 +13,32 @@ const emptyLoader   = R.always(Promise.resolve())
 const emptyGetTitle = R.always(Promise.resolve())
 const matchedRoute  = path => R.find(({ regexp }) => regexp.test(path))
 
-const SCROLLS = new WeakMap()
+const SCROLLS = {}
+const INITIAL_KEY = "!@#$%^&*()"
 
 function ScrollRestoration({ type, children }) {
   function restoreScroll() {
-    const currLoc = history.location
+    const currKey = history.location.key || INITIAL_KEY
 
+    let updateCounter = 0
     function update() {
-      const scrollY = SCROLLS.get(currLoc)
+      updateCounter += 1
+
+      const scrollY = SCROLLS[currKey]
 
       window.scrollTo({ top: scrollY })
-      if (window.scrollY !== scrollY) {
+
+      if (window.scrollY === 0 && updateCounter < 60) {
         requestAnimationFrame(update)
       }
     }
 
-    if (type === "POP" && SCROLLS.has(currLoc)) {
-      console.log(type, currLoc)
-      // wait for all nodes to be rendered
-
+    if (type === "POP" && SCROLLS[currKey] !== undefined) {
       requestAnimationFrame(update)
     }
   }
 
-  useEffect(restoreScroll, [type, children])
+  useEffect(restoreScroll, [children])
 
   return (
     <Fragment>
@@ -142,12 +144,14 @@ export default function Router({
   const updateCurrData = U.thru(preloadNext,
     U.consume(async ({ path, props, type, title }) => {
       // always save scroll position when scrolling
-      const currLoc = history.location
+      const pageKey = history.location.key || INITIAL_KEY
       window.onscroll = function () {
+        const currKey = history.location.key || INITIAL_KEY
+
         // at the end of transitioning, the key will be changed, and at that time
         // scrollY will be set to zero which should be ignored
-        if (history.location === currLoc) {
-          SCROLLS.set(currLoc, window.scrollY)
+        if (currKey === pageKey) {
+          SCROLLS[pageKey] = window.scrollY
         }
       }
 
