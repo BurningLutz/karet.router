@@ -19,12 +19,11 @@ const INITIAL_KEY = "!@#$%^&*()"
 function ScrollRestoration({ type, children }) {
   function restoreScroll() {
     const currKey = history.location.key || INITIAL_KEY
+    const scrollY = SCROLLS[currKey]
 
     let updateCounter = 0
     function update() {
       updateCounter += 1
-
-      const scrollY = SCROLLS[currKey]
 
       window.scrollTo({ top: scrollY })
 
