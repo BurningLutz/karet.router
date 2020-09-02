@@ -1,5 +1,3 @@
-function _extends() { _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends.apply(this, arguments); }
-
 import * as React from "karet";
 import { useContext } from "karet";
 import * as U from "karet.util";
@@ -36,9 +34,10 @@ export default function GenericLink({
     search,
     hash
   }) => pathname + search + hash), U.mapValue(tester))));
-  return React.createElement(T, _extends({
+  return /*#__PURE__*/React.createElement(T, {
     "karet-lift": true,
     style: U.when(isActive, activeStyle),
-    className: U.cns(className, U.when(isActive, activeClassName), U.when(isPending, pendingClassName))
-  }, rest));
+    className: U.cns(className, U.when(isActive, activeClassName), U.when(isPending, pendingClassName)),
+    ...rest
+  });
 }

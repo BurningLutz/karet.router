@@ -47,7 +47,7 @@ function ScrollRestoration({
   }
 
   useEffect(restoreScroll, [children]);
-  return React.createElement(Fragment, null, children);
+  return /*#__PURE__*/React.createElement(Fragment, null, children);
 }
 
 export default function Router({
@@ -175,11 +175,12 @@ export default function Router({
     const nowrap = R.isNil(parent) || R.propEq("noParent", true, route);
     return U.thru(route, R.ifElse(R.propSatisfies(R.isNil, "type"), R.always(null), R.pipe(({
       type: T
-    }) => React.createElement(ScrollRestoration, {
+    }) => /*#__PURE__*/React.createElement(ScrollRestoration, {
       type: type
-    }, React.createElement(T, props), updatePrevData), R.ifElse(R.always(nowrap), R.identity, element => React.createElement(parent, null, element)))));
+    }, /*#__PURE__*/React.createElement(T, { ...props
+    }), updatePrevData), R.ifElse(R.always(nowrap), R.identity, element => React.createElement(parent, null, element)))));
   }));
-  return React.createElement(RouterContext.Provider, {
+  return /*#__PURE__*/React.createElement(RouterContext.Provider, {
     value: aHistory
-  }, React.createElement(Fragment, null, U.onUnmount(unlisten), syncWithHistory, updateCurrData, updateTitle), React.createElement(Fragment, null, renderedElement));
+  }, /*#__PURE__*/React.createElement(Fragment, null, U.onUnmount(unlisten), syncWithHistory, updateCurrData, updateTitle), /*#__PURE__*/React.createElement(Fragment, null, renderedElement));
 }
