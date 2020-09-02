@@ -1,5 +1,5 @@
 {
-  "name": "karet-router",
+  "name": "karet.arouter",
   "version": "2.4.1",
   "description": "Router made in the calmm way.",
   "module": "dist/index.js",
