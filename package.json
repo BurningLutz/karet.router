@@ -1,7 +1,7 @@
 {
   "name": "karet-router",
   "version": "2.4.1",
-  "description": "A router written with Kefir and Karet.",
+  "description": "Router made in the calmm way.",
   "module": "dist/index.js",
   "repository": "https://github.com/BurningLutz/karet.router",
   "author": "BurningLutz",
@@ -9,7 +9,7 @@
   "scripts": {
     "dist": "rm -rf dist; babel src/* --out-dir dist",
     "preversion": "npm run dist; git add dist",
-    "postversion": "git push && git push --tags"
+    "postversion": "git push && git push --tags && npm publish"
   },
   "peerDependencies": {
     "karet": "^4.1.0",
